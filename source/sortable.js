@@ -10,7 +10,7 @@
    * Controller for Sortable.
    * @param $scope - the sortable scope.
    */
-  mainModule.controller('as.sortable.sortableController', ['$scope', function ($scope) {
+  mainModule.controller('as.sortable.sortableController', ['$scope', 'sortableConfig', function ($scope, sortableConfig) {
 
     this.scope = $scope;
 
@@ -55,7 +55,7 @@
           }
         }
         // reverse order to splice list will not mess up array order
-        for (var i = selectIndex.length - 1; i >= 0; i--) {
+        for (var j = selectIndex.length - 1; j >= 0; j--) {
           // because we are reverse order to get item, push item in front of list
           $scope.removeList.unshift($scope.modelValue.splice(selectIndex[i], 1)[0]);
         }
@@ -308,7 +308,7 @@
 
           // Set isDisabled if attr is set, if undefined isDisabled = false
           if (angular.isDefined(attrs.isDisabled)) {
-            scope.$watch(attrs.isDisabled, function (newVal, oldVal) {
+            scope.$watch(attrs.isDisabled, function (newVal) {
               if (!angular.isUndefined(newVal)) {
                 scope.isDisabled = newVal;
               }

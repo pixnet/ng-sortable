@@ -113,7 +113,7 @@
       // find as-sortable-item all children
       var children = $scope.getAllSelectSortableItem();
       for (var i = 0; i < children.length; i++) {
-        var childrenScope = angular.element(children[i]).scope();
+        var childrenScope = angular.element(children[i]).data('_scope');
         childrenScope.removeSelectClass();
         childrenScope.removeShiftSelectClass();
       }

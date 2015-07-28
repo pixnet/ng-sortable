@@ -93,9 +93,9 @@
               if (e.ctrlKey || e.metaKey) {
                 element.toggleClass(sortableConfig.selectClass);
               } else if (e.shiftKey && shiftFlag.length) {
-                var shiftElementScope = shiftFlag.scope();
+                var shiftElementScope = shiftFlag.data('_scope');
                 if (shiftElementScope) {
-                  var elementIndex = element.scope().index();
+                  var elementIndex = element.data('_scope').index();
                   parentScope.addSelectBetweenSortableItems(shiftElementScope.index(), elementIndex);
                   parentScope.lastShiftModifyItemIndex = elementIndex;
                   return;

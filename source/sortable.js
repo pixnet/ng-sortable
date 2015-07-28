@@ -48,16 +48,19 @@
         $scope.removeList = []; // empty select remove item list
         // find all as-sortable-item all children
         var children = $scope.getAllSelectSortableItem(),
-          selectIndex = [];
+          selectIndex = [], selectElem;
         for (var i = 0; i < children.length; i++) {
-          if (angular.element(children[i]).scope().isSelect()) {
+          selectElem = angular.element(children[i]);
+          if (selectElem.data('_scope').isSelect()) {
             selectIndex.push(i);
+            // show hidden children element
+            selectElem.show();
           }
         }
         // reverse order to splice list will not mess up array order
         for (var j = selectIndex.length - 1; j >= 0; j--) {
           // because we are reverse order to get item, push item in front of list
-          $scope.removeList.unshift($scope.modelValue.splice(selectIndex[i], 1)[0]);
+          $scope.removeList.unshift($scope.modelValue.splice(selectIndex[j], 1)[0]);
         }
         return $scope.removeList;
       } else {

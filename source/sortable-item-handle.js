@@ -197,8 +197,8 @@
                 // hide selectItems display
                 selectItem = angular.element(sortableItemList[i]);
                 // hide other select item
-                if (selectItem.scope().isSelect()) {
-                  selectItem.css('display', 'none');
+                if (fetchScope(selectItem).isSelect()) {
+                  selectItem.hide();
                   selectItemsLen = selectItemsLen + 1;
                 }
               }
@@ -240,6 +240,14 @@
                 isDraggable = false;
               }
               elementClicked = elementClicked.parent();
+            }
+
+            /**
+             * For multiple selection
+             * if in multiple mode, the element must been selected
+             * */
+            if (scope.sortableScope.isMultipleSelect && !sourceScope.isSelect()) {
+              isDraggable = false;
             }
             return isDraggable;
           };
@@ -408,6 +416,10 @@
             dragHandled = false;
             containment.css('cursor', '');
             containment.removeClass('as-sortable-un-selectable');
+            // for multiple selection, enable mouse selection
+            if (scope.sortableScope.isMultipleSelect) {
+              sortableMultiHelper.stopDrag();
+            }
           }
 
           /**

@@ -27,7 +27,12 @@
      * @param itemData - the item model data.
      */
     $scope.insertItem = function (index, itemData) {
-      $scope.modelValue.splice(index, 0, itemData);
+      if ($scope.isMultipleSelect) {
+        Array.prototype.splice.apply($scope.modelValue, [index, 0].concat($scope.removeList));
+        $scope.removeList = null;
+      } else {
+        $scope.modelValue.splice(index, 0, itemData);
+      }
     };
 
     /**
@@ -37,11 +42,31 @@
      * @returns {*} - removed item.
      */
     $scope.removeItem = function (index) {
-      var removedItem = null;
-      if (index > -1) {
-        removedItem = $scope.modelValue.splice(index, 1)[0];
+
+      // for multiple select
+      if ($scope.isMultipleSelect) {
+        $scope.removeList = []; // empty select remove item list
+        // find all as-sortable-item all children
+        var children = $scope.getAllSelectSortableItem(),
+          selectIndex = [];
+        for (var i = 0; i < children.length; i++) {
+          if (angular.element(children[i]).scope().isSelect()) {
+            selectIndex.push(i);
+          }
+        }
+        // reverse order to splice list will not mess up array order
+        for (var i = selectIndex.length - 1; i >= 0; i--) {
+          // because we are reverse order to get item, push item in front of list
+          $scope.removeList.unshift($scope.modelValue.splice(selectIndex[i], 1)[0]);
+        }
+        return $scope.removeList;
+      } else {
+        var removedItem = null;
+        if (index > -1) {
+          removedItem = $scope.modelValue.splice(index, 1)[0];
+        }
+        return removedItem;
       }
-      return removedItem;
     };
 
     /**
@@ -65,6 +90,114 @@
       return $scope.callbacks.accept(sourceItemHandleScope, destScope, destItemScope);
     };
 
+    /**
+     * For multiple selection
+     */
+    // store parent variable indicate last modify item by shift key
+    $scope.lastShiftModifyItemIndex = -1;
+
+    $scope.getAllSelectSortableItem = function () {
+      return $scope.element[0].querySelectorAll('.' + sortableConfig.itemClass);
+    };
+
+    /**
+     * shiftFlag
+     *
+     * @return item with shiftFlagClass (should only has one)
+     */
+    $scope.getShiftFlagSortableItem = function () {
+      return angular.element($scope.element[0].querySelector('.' + sortableConfig.shiftFlagClass));
+    };
+
+    $scope.cleanChildrenSelect = function () {
+      // find as-sortable-item all children
+      var children = $scope.getAllSelectSortableItem();
+      for (var i = 0; i < children.length; i++) {
+        var childrenScope = angular.element(children[i]).scope();
+        childrenScope.removeSelectClass();
+        childrenScope.removeShiftSelectClass();
+      }
+    };
+
+    /**
+     * there are four situations for shift selection
+     * 1. user has not been modify before:
+     *   simply use startIndex and endIndex indicate select range
+     * 2. user has been modify before:
+     *   2.1 newest end item is upside from last modify index, (removePrevSelection will be true)
+     *   2.2 newest end item is closer to start index, remove the selection between newest end item and modify item (removeSelectionFromLastModify will be true)
+     *   2.3 newest end item is equal or farer than modify item, simply use startIndex and endIndex indicate select range
+     *
+     * important: removeSelectionBetweenLastModifyAndEnd and removePrevSelection CAN NOT BE BOTH TRUE
+     *
+     * @param item1 - shfit start item index
+     * @param item2 - shfit end item index (user current click)
+     * */
+    $scope.addSelectBetweenSortableItems = function (item1, item2) {
+      var children = $scope.getAllSelectSortableItem(),
+        hasLastModify = ($scope.lastShiftModifyItemIndex !== -1),
+      // 2.1, modify -> item1 -> item2, item2 -> item1 -> modify
+        removePrevSelection = hasLastModify && ($scope.lastShiftModifyItemIndex < item1 && item1 < item2) && ($scope.lastShiftModifyItemIndex > item1 && item1 > item2),
+      // 2.2 if last shift item is closer to item1 than item2,
+      // means user want to remove the selection between lastShiftIndex and item2 Index
+        removeSelectionBetweenLastModifyAndEnd = hasLastModify && (!removePrevSelection),
+        startIndex = (item1 < item2) ? item1 : item2,
+        endIndex = (item1 < item2) ? item2 : item1,
+        startAdding = false,
+        startRemove = false,
+        isEnd = false,
+        isInModifyIndex = false;
+      for (var i = 0; i < children.length; i++) {
+        isInModifyIndex = (i === $scope.lastShiftModifyItemIndex);
+        if (removePrevSelection && (isInModifyIndex || startRemove)) {
+          startAdding = false;
+          startRemove = true;
+          angular.element(children[i]).removeClass(sortableConfig.selectClass);
+          if (isInModifyIndex && isEnd) {
+            // end of modify
+            return;
+          }
+        }
+
+        if (i === startIndex || startAdding) {
+          startAdding = true;
+          startRemove = false;
+          angular.element(children[i]).addClass(sortableConfig.selectClass);
+        }
+
+        if (removeSelectionBetweenLastModifyAndEnd) {
+          // start -> end -> modify, start -> modify -> end
+          if (isInModifyIndex && startRemove) {
+            // end of removeSelectionBetweenLastModifyAndEnd
+            // when modifyIndex is after newest end point
+            return;
+          }
+
+          // hit endIndex and not start yet, modify -> start -> end
+          if ((i === endIndex) || startRemove || (isInModifyIndex && !startAdding && !startRemove)) {
+            // start remove class
+            startAdding = false;
+            startRemove = true;
+            if ((i !== endIndex)) {
+              angular.element(children[i]).removeClass(sortableConfig.selectClass);
+            }
+            continue;
+          }
+        }
+
+        if (i === endIndex && !startRemove) {
+          startAdding = false;
+          isEnd = true;
+          if (!removePrevSelection) {
+            // not farer implement
+            return;
+          }
+          // start remove removePrevSelection
+          startRemove = true;
+        }
+      }
+    };
+
   }]);
 
   /**
@@ -72,8 +205,8 @@
    * Parent directive for draggable and sortable items.
    * Sets modelValue, callbacks, element in scope.
    */
-  mainModule.directive('asSortable',
-    function () {
+  mainModule.directive('asSortable', ['ui.sortable.sortableMultiHelper',
+    function (sortableMultiHelper) {
       return {
         require: 'ngModel', // get a hold of NgModelController
         restrict: 'A',
@@ -181,8 +314,28 @@
               }
             }, true);
           }
+
+          /**
+           * for multiple selection
+           * */
+          // can multiple select or not
+          scope.isMultipleSelect = !!attrs.multiple;
+          if (scope.isMultipleSelect) {
+            sortableMultiHelper.init();
+            // if it click on ng-sortable area, clean all current selection
+            element.on('mousedown.cleanSelection', function (event) {
+              if( event.target !== this ) {
+                return false;
+              }
+              scope.cleanChildrenSelect();
+            });
+            // remove mouse selection area after scope destroy
+            scope.$on('$destroy', function handleDestroyEvent() {
+              sortableMultiHelper.cleanSelection();
+            });
+          }
         }
       };
-    });
+    }]);
 
 }());

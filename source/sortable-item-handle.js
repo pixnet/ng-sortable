@@ -22,8 +22,8 @@
   /**
    * Directive for sortable item handle.
    */
-  mainModule.directive('asSortableItemHandle', ['sortableConfig', '$helper', '$window', '$document',
-    function (sortableConfig, $helper, $window, $document) {
+  mainModule.directive('asSortableItemHandle', ['sortableConfig', '$helper', '$window', '$document', 'as.sortable.sortableMultiHelper',
+    function (sortableConfig, $helper, $window, $document, sortableMultiHelper) {
       return {
         require: '^asSortableItem',
         scope: true,
@@ -187,6 +187,29 @@
 
             containment.append(dragElement);
             $helper.movePosition(eventObj, dragElement, itemPosition, containment, containerPositioning, scrollableContainer);
+
+            // for multiple selection!!
+            if (scope.sortableScope.isMultipleSelect) {
+              var sortableItemList = scope.sortableScope.getAllSelectSortableItem(),
+                selectItem = null,
+                selectItemsLen = 0;
+              for (var i = 0; i < sortableItemList.length; i++ ){
+                // hide selectItems display
+                selectItem = angular.element(sortableItemList[i]);
+                // hide other select item
+                if (selectItem.scope().isSelect()) {
+                  selectItem.css('display', 'none');
+                  selectItemsLen = selectItemsLen + 1;
+                }
+              }
+              // add multiple drag class for select item
+              if (1 < selectItemsLen) {
+                dragElement.addClass(sortableConfig.multipleDragClass)
+                  .addClass(scope.sortableScope.options.additionalMultipleDragClass);
+              }
+              // stop detect mouse selection
+              sortableMultiHelper.startDrag();
+            }
 
             scope.sortableScope.$apply(function () {
               scope.callbacks.dragStart(dragItemInfo.eventArgs());

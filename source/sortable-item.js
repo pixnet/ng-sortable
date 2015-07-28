@@ -64,6 +64,59 @@
           }
           scope.element = element;
           element.data('_scope',scope); // #144, work with angular debugInfoEnabled(false)
+
+          /**
+           * For Multiple selection
+           * */
+          // remove selectClass class, call from sortableController
+          scope.removeSelectClass = function () {
+            element.removeClass(sortableConfig.selectClass);
+          };
+
+          // remove shiftFlagClass class, call from sortableController
+          scope.removeShiftSelectClass = function () {
+            element.removeClass(sortableConfig.shiftFlagClass);
+          };
+
+          // return is this item has been select or not
+          scope.isSelect = function () {
+            return element.hasClass(sortableConfig.selectClass);
+          };
+
+          /**
+           * add event listen for click (use select item)
+           * */
+          if (scope.sortableScope.isMultipleSelect) {
+            scope.element.on('click', function (e) {
+              var shiftFlag = scope.getShiftFlagSortableItem(),
+                parentScope = scope.sortableScope;
+              if (e.ctrlKey || e.metaKey) {
+                element.toggleClass(sortableConfig.selectClass);
+              } else if (e.shiftKey && shiftFlag.length) {
+                var shiftElementScope = shiftFlag.scope();
+                if (shiftElementScope) {
+                  var elementIndex = element.scope().index();
+                  parentScope.addSelectBetweenSortableItems(shiftElementScope.index(), elementIndex);
+                  parentScope.lastShiftModifyItemIndex = elementIndex;
+                  return;
+                }
+              } else {
+                // parent function will remove 'selectClass' for all asSortableItem element
+                var hasClass = element.hasClass(sortableConfig.selectClass);
+                parentScope.cleanChildrenSelect();
+                if (hasClass) {
+                  element.removeClass(sortableConfig.selectClass);
+                } else {
+                  element.addClass(sortableConfig.selectClass);
+                }
+                shiftFlag.removeClass(sortableConfig.shiftFlagClass);
+                element.addClass(sortableConfig.shiftFlagClass);
+                // clear last modify item, not shift modify yet
+                parentScope.lastShiftModifyItemIndex = -1;
+              }
+            });
+          }
+
         }
       };
     }]);

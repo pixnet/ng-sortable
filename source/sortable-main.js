@@ -34,6 +34,12 @@
       placeHolderClass: 'as-sortable-placeholder',
       dragClass: 'as-sortable-drag',
       hiddenClass: 'as-sortable-hidden',
-      dragging: 'as-sortable-dragging'
+      dragging: 'as-sortable-dragging',
+      selectClass: 'as-multi-item-select',
+      multipleDragClass: 'as-sortable-multiple-drag',
+      mouseSelectionAreaClass: 'as-sortable-mouse-area',
+      mouseSelectionActiveClass: 'as-sortable-mouse-selection-active',
+      mouseSelectionSelectionClass: 'as-sortable-temp-mouse-selection',
+      shiftFlagClass: 'as-sortable-shift-flag'
     });
 }());

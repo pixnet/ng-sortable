@@ -205,7 +205,7 @@
    * Parent directive for draggable and sortable items.
    * Sets modelValue, callbacks, element in scope.
    */
-  mainModule.directive('asSortable', ['ui.sortable.sortableMultiHelper',
+  mainModule.directive('asSortable', ['as.sortable.sortableMultiHelper',
     function (sortableMultiHelper) {
       return {
         require: 'ngModel', // get a hold of NgModelController

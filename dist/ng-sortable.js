@@ -975,7 +975,7 @@
 
               eventObj = $helper.eventObj(event);
               scope.sortableScope.$apply(function () {
-                scope.callbacks.dragMove(itemPosition, containment);
+                scope.callbacks.dragMove(itemPosition, containment, dragElement);
               });
               $helper.movePosition(eventObj, dragElement, itemPosition, containment, containerPositioning, scrollableContainer);
 

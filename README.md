@@ -2,6 +2,12 @@
 ng-sortable
 ==============
 
+#### For multiple item sortable (PIXNET):
+
+please check out "pixnet-multiSelection" branch
+
+-
+
 Angular Library for Drag and Drop, supports Sortable and Draggable. No JQuery UI used. Supports Touch devices.
 
 If you use this module you can give it a thumbs up at [http://ngmodules.org/modules/ng-sortable](http://ngmodules.org/modules/ng-sortable).

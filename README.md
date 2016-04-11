@@ -2,6 +2,17 @@
 ng-sortable
 ==============
 
+#### PIXNET Change log:
+
+因後台拖拉選取需求，變更程式碼為可多選拖拉排序的功能。
+程式碼異動請參考此 branch (pixnet-multiSelection) 的 git log。
+
+主要的修改檔案為 source folder 裡的 sortable-multi-helper.js 跟 sortable-item-handle.js 在一般的拖拉功能中有判斷是多選的部份。
+
+如果有修改要修改並給外部使用，請在此 branch 修改後並做 tag（e.g. pixnet-mulitSelection-0.0.2)
+
+----
+
 Angular Library for Drag and Drop, supports Sortable and Draggable. No JQuery UI used. Supports Touch devices.
 
 If you use this module you can give it a thumbs up at [http://ngmodules.org/modules/ng-sortable](http://ngmodules.org/modules/ng-sortable).
